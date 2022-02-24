@@ -1,25 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react'
+import GuessList from './components/GuessList'
 
-function App() {
+const App = () => {
+  const [word, setWord] = useState('hansu')
+  const [guess, setGuess] = useState('')
+  const [guessedWords, setGuessedWords] = useState([])
+  console.log('guessedwords', guessedWords);
+
+  const handleGuessChange = (e) => {
+    setGuess(e.target.value)
+  }
+  
+  const checkGuess = (e) => {
+    e.preventDefault()
+    if (guess === word) {
+      alert('cograts')
+    } else {
+      setGuessedWords(guessedWords.concat(guess))
+    }
+    setGuess('')
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Wordling</h1>
+      <GuessList guessedWords={guessedWords}/>
+      <form onSubmit={checkGuess}>
+        <input
+          value={guess}
+          onChange={handleGuessChange}
+        />
+        <button type='submit'>Guess word</button>
+      </form>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
