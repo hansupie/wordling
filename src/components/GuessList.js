@@ -1,7 +1,6 @@
 import React from 'react';
 
 const GuessList = ({ guessedWords }) => {
-  console.log('length', guessedWords.length);
   if (guessedWords.length === 0) {
     return null
   }
