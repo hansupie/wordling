@@ -2,22 +2,35 @@ import React, { useEffect, useState } from 'react'
 import GuessList from './components/GuessList'
 import Message from './components/Message'
 import wordService from './sevices/word'
+import Game from './components/Game'
+import Nav from './components/Nav'
+import './App.css'
 
 const App = () => {
   const [word, setWord] = useState('hansu')
   const [guess, setGuess] = useState('')
   const [guessedWords, setGuessedWords] = useState([])
   const [letters, setLetters] = useState([])
-  const [numberOfGuesses, setNumberOfGuesses] = useState(0)
   const [message, setMessage] = useState(null)
+  const [tiles, setTiles] = useState(new Array(6).fill(new Array(5).fill('')))
+  const [row, setRow] = useState(0)
+  const [gameOver, setGameOver] = useState(false)
 
   const handleGuessChange = (e) => {
+    let temp = e.target.value
     setGuess(e.target.value)
+    let tempArr = Array.from(temp)
+    let newArr = tempArr.concat(Array(5-tempArr.length).fill(''))
+    let copy = [...tiles]
+    copy[row] = newArr
+
+    setTiles(copy)
   }
   
   const resetGame = () => {
     setGuessedWords([])
     setLetters([])
+    setRow(0)
   }
 
   const isValid = () => {
@@ -38,6 +51,7 @@ const App = () => {
   const checkGuess = (e) => {
     e.preventDefault()
     let rightLetters = []
+
     if (isValid()) {
       if (guess === word) {
         setMessage(`Congratulations! The word was ${word}.`)
@@ -45,6 +59,7 @@ const App = () => {
           setMessage(null)
         }, 5000)
         resetGame()
+        setGameOver(true)
       } else if (guessedWords.includes(guess)) {
         setMessage('You already guessed that word')
         setTimeout(() => {
@@ -57,34 +72,50 @@ const App = () => {
           }
         })
         let filteredLetters = rightLetters.filter(letter => !letters.includes(letter))
+        console.log('letters', letters);
         setLetters(letters.concat(filteredLetters))
         setGuessedWords(guessedWords.concat(guess))
-        setNumberOfGuesses(numberOfGuesses + 1)
-      }
-    }
-    setGuess('')
 
-    if (numberOfGuesses + 1 >= 6) {
-      setMessage('You lost sorry')
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000)
-      resetGame()
+        setRow(row + 1)
+
+        if (row + 1 >= 6) {
+          setMessage('You lost sorry')
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+          resetGame()
+          setGameOver(true)
+        }
+      }
+      setGuess('')
     }
   }
 
-  useEffect(() => {
-    wordService
-      .getRandomWord()
-        .then(randomWord => {
-          console.log('word', randomWord);
-          setWord(randomWord)
-        })
-  }, [])
+  const handleNewGameClick = (e) => {
+    //hae uusi sana
+    setWord('mimmu')
+
+    setGameOver(false)
+    setTiles(new Array(6).fill(new Array(5).fill('')))
+  }
+
+  // useEffect(() => {
+  //   wordService
+  //     .getRandomWord()
+  //       .then(randomWord => {
+  //         console.log('word', randomWord);
+  //         setWord(randomWord)
+  //       })
+  // }, [])
 
   return (
-    <div>
-      <h1>Wordling</h1>
+    <div className='app'>
+      <Nav />
+      <Game 
+        tiles={tiles}
+        gameOver={gameOver}
+        handleNewGameClick={handleNewGameClick}
+      />
       <Message message={message}/>
       <GuessList guessedWords={guessedWords}/>
       <p>{letters}</p>
@@ -94,6 +125,7 @@ const App = () => {
           minLength={5}
           value={guess}
           onChange={handleGuessChange}
+          disabled={gameOver}
         />
         <button type='submit'>Guess word</button>
       </form>

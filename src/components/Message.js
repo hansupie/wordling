@@ -8,7 +8,7 @@ const Message = ({ message }) => {
     <div>
       {message}
     </div>
-  );
-};
+  )
+}
 
 export default Message
