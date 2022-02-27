@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import GuessList from './components/GuessList'
 import Message from './components/Message'
 import wordService from './sevices/word'
 import Game from './components/Game'
@@ -7,83 +6,108 @@ import Nav from './components/Nav'
 import './App.css'
 
 const App = () => {
-  const [word, setWord] = useState('hansu')
+  const [word, setWord] = useState('hello')
   const [guess, setGuess] = useState('')
-  const [guessedWords, setGuessedWords] = useState([])
-  const [letters, setLetters] = useState([])
   const [message, setMessage] = useState(null)
   const [tiles, setTiles] = useState(new Array(6).fill(new Array(5).fill('')))
   const [row, setRow] = useState(0)
   const [gameOver, setGameOver] = useState(false)
+  const [tileColors, setTileColors] = useState(new Array(6).fill(new Array(5).fill('')))
 
   const handleGuessChange = (e) => {
     let temp = e.target.value
-    setGuess(e.target.value)
+    setGuess(temp.toLowerCase())
     let tempArr = Array.from(temp)
     let newArr = tempArr.concat(Array(5-tempArr.length).fill(''))
     let copy = [...tiles]
     copy[row] = newArr
-
     setTiles(copy)
   }
   
-  const resetGame = () => {
-    setGuessedWords([])
-    setLetters([])
-    setRow(0)
+  const compareWords = () => {
+    let colors = [...tileColors];
+    let newRow = [];
+
+    [...guess].forEach((letter, i) => {
+      if (letter === word[i]) {
+        newRow = newRow.concat('green')
+      }
+      else if (word.includes(letter) && letter !== word[i]) {
+        newRow = newRow.concat('orange')
+      }
+      else {
+        newRow = newRow.concat('gray')
+      }
+    })
+    colors[row] = newRow
+
+    setTileColors(colors)
   }
 
-  const isValid = () => {
+  const resetGame = () => {
+    setRow(0)
+    setTileColors(new Array(6).fill(new Array(5).fill('')))
+    setTiles(new Array(6).fill(new Array(5).fill('')))
+  }
+
+  const isValid = async() => {
     let acceptedLetters = /^[A-Za-z]+$/
+    let result
 
     if (acceptedLetters.test(guess)) {
-      return true
+      result = true
     }
     else {
       setMessage('Only letters accepted.')
       setTimeout(() => {
         setMessage(null)
       }, 5000)
-      return false
+      result = false
     }
+
+    await wordService
+      .checkWord(guess)
+      .then(() => {
+        result = true
+      })
+      .catch(error => {
+        result = false
+        console.log(error)
+        setMessage(`${guess} is not a word.`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
+      })
+    return result
   }
 
-  const checkGuess = (e) => {
+  const checkGuess = async (e) => {
     e.preventDefault()
     let rightLetters = []
+    const valid = await isValid()
 
-    if (isValid()) {
+    if (valid) {
+      compareWords()
       if (guess === word) {
         setMessage(`Congratulations! The word was ${word}.`)
         setTimeout(() => {
           setMessage(null)
         }, 5000)
-        resetGame()
         setGameOver(true)
-      } else if (guessedWords.includes(guess)) {
-        setMessage('You already guessed that word')
-        setTimeout(() => {
-          setMessage(null)
-        }, 5000)
       } else {
         [...guess].forEach(letter => {
           if (word.includes(letter)) {
             rightLetters = rightLetters.concat(letter)
           }
         })
-        let filteredLetters = rightLetters.filter(letter => !letters.includes(letter))
-        console.log('letters', letters);
-        setLetters(letters.concat(filteredLetters))
-        setGuessedWords(guessedWords.concat(guess))
 
         setRow(row + 1)
 
         if (row + 1 >= 6) {
-          setMessage('You lost sorry')
+          setMessage(`You lost! The word was ${word}`)
           setTimeout(() => {
             setMessage(null)
           }, 5000)
-          resetGame()
           setGameOver(true)
         }
       }
@@ -92,21 +116,32 @@ const App = () => {
   }
 
   const handleNewGameClick = (e) => {
-    //hae uusi sana
-    setWord('mimmu')
+    wordService
+      .getRandomWord()
+      .then(randomWord => {
+        setWord(randomWord)
+      })
+      .catch(error => {
+        console.log(error)
+        setWord('error')
+      })
 
     setGameOver(false)
-    setTiles(new Array(6).fill(new Array(5).fill('')))
+    resetGame()
   }
 
-  // useEffect(() => {
-  //   wordService
-  //     .getRandomWord()
-  //       .then(randomWord => {
-  //         console.log('word', randomWord);
-  //         setWord(randomWord)
-  //       })
-  // }, [])
+  useEffect(() => {
+    wordService
+      .getRandomWord()
+      .then(randomWord => {
+        console.log('word', randomWord);
+        setWord(randomWord)
+      })
+      .catch(error => {
+        console.log(error);
+        setWord('error')
+      })
+  }, [])
 
   return (
     <div className='app'>
@@ -115,17 +150,19 @@ const App = () => {
         tiles={tiles}
         gameOver={gameOver}
         handleNewGameClick={handleNewGameClick}
+        word={word}
+        row={row}
+        tileColors={tileColors}
       />
       <Message message={message}/>
-      <GuessList guessedWords={guessedWords}/>
-      <p>{letters}</p>
-      <form onSubmit={checkGuess}>
+      <form onSubmit={checkGuess} className='form'>
         <input
           maxLength={5}
           minLength={5}
           value={guess}
           onChange={handleGuessChange}
           disabled={gameOver}
+          autoFocus
         />
         <button type='submit'>Guess word</button>
       </form>

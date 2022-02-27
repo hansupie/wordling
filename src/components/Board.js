@@ -1,7 +1,7 @@
 import React from 'react'
 import Tile from './Tile'
 
-const Board = ({ tiles }) => {
+const Board = ({ tiles, tileColors }) => {
   return (
     <div id='board'>
       {tiles.map((row, i) =>
@@ -9,6 +9,7 @@ const Board = ({ tiles }) => {
           <Tile 
             key={`${i}.${j}`}
             letter={tile}
+            className={`tile ${tileColors[i][j]}`}
           />
         )
       )}

@@ -1,5 +1,8 @@
+*, *::before, *::after { box-sizing: border-box; }
+
 .app {
   width: 100%;
+  text-align: center;
 }
 
 header {
@@ -23,8 +26,7 @@ header {
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(6, 1fr);
   column-gap: 5px;
-  row-gap: 5px;
-  box-sizing: border-box;
+  row-gap: 10px;
 }
 
 .tile {
@@ -37,6 +39,28 @@ header {
   text-transform: uppercase;
 }
 
-.btn {
+.green {
+  background-color: green;
+  color: white;
+  border-style: none;
+}
+
+.orange {
+  background-color: orange;
+  color: white;
+  border-style: none;
+}
+
+.gray {
+  background-color: darkgray;
+  color: white;
+  border-style: none;
+}
+
+button {
+  margin: 10px;
+}
+
+.form {
   margin-top: 10px;
 }

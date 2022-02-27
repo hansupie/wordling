@@ -10,9 +10,14 @@ const getRandomWord = () => {
       'x-rapidapi-host': 'random-words5.p.rapidapi.com',
       'x-rapidapi-key': api_key
     }
-  };
+  }
   const request = axios.request(options)
   return request.then(response => response.data)
 }
 
-export default { getRandomWord }
+const checkWord = async(word) => { 
+  const request = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+  return request.data
+}
+
+export default { getRandomWord, checkWord }
