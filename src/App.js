@@ -4,6 +4,7 @@ import wordService from './sevices/word'
 import Game from './components/Game'
 import Nav from './components/Nav'
 import './App.css'
+import Keyboard from './components/Keyboard'
 
 const App = () => {
   const [word, setWord] = useState('hello')
@@ -13,6 +14,11 @@ const App = () => {
   const [row, setRow] = useState(0)
   const [gameOver, setGameOver] = useState(false)
   const [tileColors, setTileColors] = useState(new Array(6).fill(new Array(5).fill('')))
+  const [clicks, setClicks] = useState(0)
+  const [keyGuess, setKeyGuess] = useState('')
+
+  console.log('keyguess', keyGuess);
+  console.log('word', word);
 
   const handleGuessChange = (e) => {
     let temp = e.target.value
@@ -82,7 +88,7 @@ const App = () => {
   }
 
   const checkGuess = async (e) => {
-    e.preventDefault()
+    //e.preventDefault()
     let rightLetters = []
     const valid = await isValid()
 
@@ -130,6 +136,30 @@ const App = () => {
     resetGame()
   }
 
+  const handleKeyClick = (e) => {
+    console.log('key clicked: ', e.target.value);
+    const letter = e.target.value
+    setClicks(clicks + 1)
+
+    let newGuess = guess
+    if (clicks < 5) {
+      newGuess += letter
+    }
+    setGuess(newGuess)
+
+    let tempArr = Array.from(newGuess)
+    let newArr = tempArr.concat(Array(5-tempArr.length).fill(''))
+    let copy = [...tiles]
+    copy[row] = newArr
+    setTiles(copy)
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    checkGuess()
+    setClicks(0)
+  }
+
   useEffect(() => {
     wordService
       .getRandomWord()
@@ -155,6 +185,10 @@ const App = () => {
         tileColors={tileColors}
       />
       <Message message={message}/>
+      <Keyboard 
+        handleKeyClick={handleKeyClick}
+        handleSubmit={handleSubmit}
+      />
       <form onSubmit={checkGuess} className='form'>
         <input
           maxLength={5}
